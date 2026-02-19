@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NLTK Tokenizer — Interactive NLP Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c28;
+    --border: #2a2a3d;
+    --accent: #6ee7f7;
+    --accent2: #f7a26e;
+    --accent3: #a26ef7;
+    --accent4: #6ef7a2;
+    --accent5: #f76ea2;
+    --text: #e8e8f0;
+    --muted: #6b6b85;
+    --code-bg: #0d0d14;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid lines background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(110,231,247,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(110,231,247,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Glow blobs */
+  .blob {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.15;
+  }
+  .blob-1 { width: 500px; height: 500px; background: var(--accent3); top: -150px; right: -100px; }
+  .blob-2 { width: 400px; height: 400px; background: var(--accent); bottom: 100px; left: -150px; }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    padding: 56px 0 40px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .logo-area h1 {
+    font-size: clamp(2.4rem, 5vw, 4rem);
+    font-weight: 800;
+    letter-spacing: -2px;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent3) 60%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .logo-area p {
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 0.95rem;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.02em;
+  }
+
+  .badge-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 0.72rem;
+    font-family: 'Space Mono', monospace;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  /* ─── TABS ─── */
+  .tabs-wrapper {
+    margin-top: 36px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+  }
+
+  .tab-btn {
+    padding: 14px 22px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.2s, border-color 0.2s;
+    letter-spacing: 0.03em;
+  }
+
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .tab-btn:hover:not(.active) {
+    color: var(--text);
+  }
+
+  /* ─── PANELS ─── */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ─── INPUT AREA ─── */
+  .input-section {
+    margin-top: 32px;
+  }
+
+  .input-label {
+    font-size: 0.75rem;
+    font-family: 'Space Mono', monospace;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .text-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    resize: vertical;
+    min-height: 130px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .text-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(110,231,247,0.08);
+  }
+
+  .input-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent3) 100%);
+    color: var(--bg);
+    border: none;
+    border-radius: 8px;
+    padding: 10px 24px;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+
+  .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 18px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+
+  /* ─── RESULTS ─── */
+  .results-section {
+    margin-top: 32px;
+  }
+
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    animation: fadeUp 0.35s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .result-title {
+    font-size: 0.82rem;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  .result-meta {
+    font-size: 0.72rem;
+    font-family: 'Space Mono', monospace;
+    color: var(--muted);
+  }
+
+  .token-display {
+    padding: 18px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    min-height: 60px;
+  }
+
+  .token {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.82rem;
+    padding: 4px 11px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    cursor: default;
+    transition: transform 0.15s, box-shadow 0.15s;
+    position: relative;
+  }
+
+  .token:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  }
+
+  .token-word    { background: rgba(110,231,247,0.1);  border-color: rgba(110,231,247,0.25); color: var(--accent); }
+  .token-punct   { background: rgba(247,162,110,0.1);  border-color: rgba(247,162,110,0.25); color: var(--accent2); }
+  .token-num     { background: rgba(162,110,247,0.1);  border-color: rgba(162,110,247,0.25); color: var(--accent3); }
+  .token-stop    { background: rgba(110,247,162,0.07); border-color: rgba(110,247,162,0.2);  color: var(--accent4); opacity: 0.7; }
+  .token-sent    { background: var(--surface2); border-color: var(--border); color: var(--text); font-size: 0.78rem; max-width: 100%; white-space: normal; line-height: 1.5; }
+  .token-custom  { background: rgba(247,110,162,0.1);  border-color: rgba(247,110,162,0.25); color: var(--accent5); }
+
+  /* ─── CODE BLOCK ─── */
+  .code-section {
+    border-top: 1px solid var(--border);
+  }
+
+  .code-toggle {
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 10px 18px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.2s;
+    letter-spacing: 0.04em;
+  }
+
+  .code-toggle:hover { color: var(--text); }
+
+  .code-toggle .chevron {
+    display: inline-block;
+    transition: transform 0.25s;
+  }
+
+  .code-toggle.open .chevron { transform: rotate(90deg); }
+
+  .code-block {
+    display: none;
+    background: var(--code-bg);
+    padding: 16px 18px;
+    overflow-x: auto;
+  }
+
+  .code-block.visible { display: block; }
+
+  .code-block pre {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.7;
+    color: #c0c0d0;
+  }
+
+  .kw  { color: #f76ea2; }
+  .fn  { color: #6ee7f7; }
+  .st  { color: #f7a26e; }
+  .cm  { color: #555570; font-style: italic; }
+  .nu  { color: #a26ef7; }
+
+  /* ─── OPTIONS PANEL ─── */
+  .options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .option-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    user-select: none;
+  }
+
+  .option-item:hover { border-color: var(--accent); }
+
+  .option-item input[type=checkbox] {
+    accent-color: var(--accent);
+    width: 15px; height: 15px;
+    cursor: pointer;
+  }
+
+  .option-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .option-desc {
+    font-size: 0.7rem;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    margin-top: 2px;
+  }
+
+  /* ─── STAT BOXES ─── */
+  .stats-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .stat-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 18px;
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .stat-value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
+    font-family: 'Space Mono', monospace;
+    color: var(--muted);
+    margin-top: 2px;
+    letter-spacing: 0.05em;
+  }
+
+  /* ─── LEGEND ─── */
+  .legend {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+    padding: 14px 18px;
+    background: var(--surface2);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.72rem;
+    font-family: 'Space Mono', monospace;
+    color: var(--muted);
+  }
+
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 3px;
+  }
+
+  /* ─── REGEXP INPUT ─── */
+  .regexp-input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--accent2);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .regexp-input:focus { border-color: var(--accent2); }
+
+  /* ─── ABOUT/THEORY ─── */
+  .theory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 28px;
+  }
+
+  .theory-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .theory-card:hover {
+    border-color: var(--accent3);
+    transform: translateY(-3px);
+  }
+
+  .theory-icon {
+    font-size: 1.8rem;
+    margin-bottom: 12px;
+  }
+
+  .theory-card h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--accent);
+  }
+
+  .theory-card p {
+    font-size: 0.82rem;
+    line-height: 1.65;
+    color: var(--muted);
+  }
+
+  /* empty state */
+  .empty-state {
+    padding: 40px;
+    text-align: center;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.82rem;
+    letter-spacing: 0.05em;
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  footer {
+    margin-top: 80px;
+    border-top: 1px solid var(--border);
+    padding: 28px 0;
+    text-align: center;
+    font-size: 0.75rem;
+    font-family: 'Space Mono', monospace;
+    color: var(--muted);
+  }
+
+  @media (max-width: 600px) {
+    .header-inner { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+
+<div class="container">
+  <header>
+    <div class="header-inner">
+      <div class="logo-area">
+        <h1>NLTK Tokenizer</h1>
+        <p>// Natural Language Processing Lab — Interactive Demo</p>
+      </div>
+      <div class="badge-row">
+        <span class="badge">NLTK 3.8</span>
+        <span class="badge">Python 3.x</span>
+        <span class="badge">NLP</span>
+        <span class="badge">Live Demo</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="tabs-wrapper">
+    <button class="tab-btn active" data-tab="word">Word Tokenize</button>
+    <button class="tab-btn" data-tab="sent">Sentence Tokenize</button>
+    <button class="tab-btn" data-tab="regexp">RegexpTokenizer</button>
+    <button class="tab-btn" data-tab="compare">Compare All</button>
+    <button class="tab-btn" data-tab="theory">Learn</button>
+  </div>
+
+  <!-- ══ WORD TOKENIZE ══ -->
+  <div class="panel active" id="panel-word">
+    <div class="input-section">
+      <div class="input-label">// input text</div>
+      <textarea class="text-input" id="word-input" placeholder="Enter text to tokenize... e.g. 'Dr. Smith's lab isn't open today. Let's try again tomorrow, shall we?'">Dr. Smith's lab isn't open today. Let's try again tomorrow, shall we?</textarea>
+      <div class="input-actions">
+        <button class="btn-primary" onclick="runWordTokenize()">▶ Tokenize</button>
+        <button class="btn-ghost" onclick="loadSample('word')">Load Sample</button>
+        <button class="btn-ghost" onclick="clearOutput('word')">Clear</button>
+      </div>
+    </div>
+
+    <div class="options-grid" style="margin-top:20px;">
+      <label class="option-item">
+        <input type="checkbox" id="opt-stopwords" onchange="runWordTokenize()">
+        <div><div class="option-label">Hide Stopwords</div><div class="option-desc">the, is, at, etc.</div></div>
+      </label>
+      <label class="option-item">
+        <input type="checkbox" id="opt-nopunct" onchange="runWordTokenize()">
+        <div><div class="option-label">Hide Punctuation</div><div class="option-desc">.,!?;:'" etc.</div></div>
+      </label>
+      <label class="option-item">
+        <input type="checkbox" id="opt-lower" onchange="runWordTokenize()">
+        <div><div class="option-label">Lowercase</div><div class="option-desc">Normalize case</div></div>
+      </label>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#6ee7f7"></div> Word</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f7a26e"></div> Punctuation</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#a26ef7"></div> Number</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#6ef7a2"></div> Stopword</div>
+    </div>
+
+    <div class="results-section" id="word-results"></div>
+
+    <div class="stats-row" id="word-stats" style="display:none">
+      <div class="stat-box"><div class="stat-value" id="s-total">0</div><div class="stat-label">TOTAL TOKENS</div></div>
+      <div class="stat-box"><div class="stat-value" id="s-unique">0</div><div class="stat-label">UNIQUE TOKENS</div></div>
+      <div class="stat-box"><div class="stat-value" id="s-words">0</div><div class="stat-label">WORD TOKENS</div></div>
+      <div class="stat-box"><div class="stat-value" id="s-punct">0</div><div class="stat-label">PUNCT TOKENS</div></div>
+    </div>
+  </div>
+
+  <!-- ══ SENTENCE TOKENIZE ══ -->
+  <div class="panel" id="panel-sent">
+    <div class="input-section">
+      <div class="input-label">// input text</div>
+      <textarea class="text-input" id="sent-input" placeholder="Enter a multi-sentence paragraph...">Natural Language Processing is a fascinating field. It enables computers to understand human language. NLTK, developed at UPenn, is one of the most popular NLP libraries. Dr. Watson exclaimed, "Elementary, my dear!" Holmes smiled knowingly.</textarea>
+      <div class="input-actions">
+        <button class="btn-primary" onclick="runSentTokenize()">▶ Tokenize Sentences</button>
+        <button class="btn-ghost" onclick="loadSample('sent')">Load Sample</button>
+        <button class="btn-ghost" onclick="clearOutput('sent')">Clear</button>
+      </div>
+    </div>
+    <div class="results-section" id="sent-results"></div>
+    <div class="stats-row" id="sent-stats" style="display:none">
+      <div class="stat-box"><div class="stat-value" id="ss-total">0</div><div class="stat-label">SENTENCES</div></div>
+      <div class="stat-box"><div class="stat-value" id="ss-avg">0</div><div class="stat-label">AVG WORDS/SENT</div></div>
+      <div class="stat-box"><div class="stat-value" id="ss-longest">0</div><div class="stat-label">LONGEST SENT (WORDS)</div></div>
+    </div>
+  </div>
+
+  <!-- ══ REGEXP TOKENIZER ══ -->
+  <div class="panel" id="panel-regexp">
+    <div class="input-section">
+      <div class="input-label">// regex pattern (Python-style)</div>
+      <select class="regexp-input" id="regexp-preset" onchange="applyPreset()" style="margin-bottom:8px;">
+        <option value="\\w+">\\w+ — Words only</option>
+        <option value="[A-Z][a-z]+">&#91;A-Z&#93;&#91;a-z&#93;+ — Capitalized words</option>
+        <option value="\\d+">\\d+ — Numbers only</option>
+        <option value="[a-zA-Z0-9]+">&#91;a-zA-Z0-9&#93;+ — Alphanumeric</option>
+        <option value="\\w+(?:[-']\\w+)*">\\w+(?:[-']\\w+)* — Words with hyphens/apostrophes</option>
+        <option value="[#@]\\w+">&#91;#@&#93;\\w+ — Hashtags &amp; mentions</option>
+        <option value="custom">Custom pattern...</option>
+      </select>
+      <input type="text" class="regexp-input" id="regexp-pattern" value="\w+" placeholder="Enter regex pattern">
+      <div class="input-label" style="margin-top:18px;">// input text</div>
+      <textarea class="text-input" id="regexp-input">NLP is amazing! Check out #nltk and @python. Price: $42.99. Version 3.8 released in 2023.</textarea>
+      <div class="input-actions">
+        <button class="btn-primary" onclick="runRegexpTokenize()">▶ Tokenize</button>
+        <button class="btn-ghost" onclick="clearOutput('regexp')">Clear</button>
+      </div>
+    </div>
+    <div class="results-section" id="regexp-results"></div>
+  </div>
+
+  <!-- ══ COMPARE ALL ══ -->
+  <div class="panel" id="panel-compare">
+    <div class="input-section">
+      <div class="input-label">// input text — compare all methods</div>
+      <textarea class="text-input" id="compare-input">Hello! I'm using NLTK 3.8 to tokenize text. It's quite powerful, isn't it? Costs ~$0.00!</textarea>
+      <div class="input-actions">
+        <button class="btn-primary" onclick="runCompare()">▶ Compare All Methods</button>
+        <button class="btn-ghost" onclick="loadSample('compare')">Load Sample</button>
+      </div>
+    </div>
+    <div class="results-section" id="compare-results"></div>
+  </div>
+
+  <!-- ══ LEARN / THEORY ══ -->
+  <div class="panel" id="panel-theory">
+    <div class="theory-grid">
+      <div class="theory-card">
+        <div class="theory-icon">🔤</div>
+        <h3>What is Tokenization?</h3>
+        <p>Tokenization is the process of splitting text into meaningful units called tokens. These can be words, subwords, sentences, or characters. It's the foundational first step in any NLP pipeline.</p>
+      </div>
+      <div class="theory-card">
+        <div class="theory-icon">📦</div>
+        <h3>word_tokenize()</h3>
+        <p>Uses the Punkt tokenizer trained on English. Handles contractions (don't → do + n't), abbreviations (Dr.), and punctuation intelligently. Equivalent to TreebankWordTokenizer.</p>
+      </div>
+      <div class="theory-card">
+        <div class="theory-icon">📄</div>
+        <h3>sent_tokenize()</h3>
+        <p>Uses NLTK's Punkt sentence tokenizer. Handles tricky cases like "Dr. Smith" vs end-of-sentence periods. Language models are available for 17+ languages.</p>
+      </div>
+      <div class="theory-card">
+        <div class="theory-icon">🔍</div>
+        <h3>RegexpTokenizer</h3>
+        <p>Allows custom tokenization via regular expressions. Can match tokens or gaps. Great for domain-specific text like medical notes, social media, or code.</p>
+      </div>
+      <div class="theory-card">
+        <div class="theory-icon">🧹</div>
+        <h3>Stopword Removal</h3>
+        <p>Stopwords are high-frequency words (the, is, at) that carry little semantic meaning. NLTK provides stopword lists for 23 languages via nltk.corpus.stopwords.</p>
+      </div>
+      <div class="theory-card">
+        <div class="theory-icon">⚡</div>
+        <h3>Quick Start</h3>
+        <p>Install: pip install nltk<br>Then: import nltk; nltk.download('punkt'); nltk.download('stopwords')<br>You're ready to tokenize!</p>
+      </div>
+    </div>
+
+    <div class="result-card" style="margin-top:28px;">
+      <div class="result-header">
+        <span class="result-title" style="color:var(--accent4)">// FULL NLTK CHEATSHEET</span>
+      </div>
+      <div class="code-block visible">
+<pre><span class="kw">import</span> nltk
+<span class="kw">from</span> nltk.tokenize <span class="kw">import</span> <span class="fn">word_tokenize</span>, <span class="fn">sent_tokenize</span>, <span class="fn">RegexpTokenizer</span>
+<span class="kw">from</span> nltk.corpus <span class="kw">import</span> stopwords
+
+<span class="cm"># ─── Setup (run once) ───────────────────────────────────────</span>
+nltk.<span class="fn">download</span>(<span class="st">'punkt'</span>)
+nltk.<span class="fn">download</span>(<span class="st">'punkt_tab'</span>)
+nltk.<span class="fn">download</span>(<span class="st">'stopwords'</span>)
+nltk.<span class="fn">download</span>(<span class="st">'averaged_perceptron_tagger'</span>)
+
+text = <span class="st">"Dr. Smith's lab isn't open today. Let's try again!"</span>
+
+<span class="cm"># ─── Word Tokenization ──────────────────────────────────────</span>
+tokens = <span class="fn">word_tokenize</span>(text)
+<span class="cm"># → ['Dr.', 'Smith', "'s", 'lab', "isn't", 'open', ...]</span>
+
+<span class="cm"># ─── Sentence Tokenization ──────────────────────────────────</span>
+sentences = <span class="fn">sent_tokenize</span>(text)
+<span class="cm"># → ["Dr. Smith's lab isn't open today.", "Let's try again!"]</span>
+
+<span class="cm"># ─── RegexpTokenizer ────────────────────────────────────────</span>
+tokenizer = <span class="fn">RegexpTokenizer</span>(<span class="st">r'\w+'</span>)
+tokens_re = tokenizer.<span class="fn">tokenize</span>(text)
+<span class="cm"># → ['Dr', 'Smith', 's', 'lab', 'isn', 't', 'open', ...]</span>
+
+<span class="cm"># ─── Remove Stopwords ───────────────────────────────────────</span>
+stop_words = <span class="fn">set</span>(stopwords.<span class="fn">words</span>(<span class="st">'english'</span>))
+filtered = [w <span class="kw">for</span> w <span class="kw">in</span> tokens <span class="kw">if</span> w.lower() <span class="kw">not in</span> stop_words]
+
+<span class="cm"># ─── POS Tagging (bonus!) ───────────────────────────────────</span>
+tagged = nltk.<span class="fn">pos_tag</span>(tokens)
+<span class="cm"># → [('Dr.', 'NNP'), ('Smith', 'NNP'), ("'s", 'POS'), ...]</span>
+
+<span class="cm"># ─── Token Frequency ────────────────────────────────────────</span>
+<span class="kw">from</span> nltk <span class="kw">import</span> FreqDist
+fdist = <span class="fn">FreqDist</span>(tokens)
+fdist.<span class="fn">most_common</span>(<span class="nu">5</span>)  <span class="cm"># top 5 tokens</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Built with ♥ — NLTK Tokenization Interactive Lab &nbsp;·&nbsp; All processing happens in your browser
+  </footer>
+</div>
+
+<script>
+// ─── NLTK English stopwords ──────────────────────────────────────────────────
+const STOPWORDS = new Set(["i","me","my","myself","we","our","ours","ourselves","you","you're","you've","you'll","you'd","your","yours","yourself","yourselves","he","him","his","himself","she","she's","her","hers","herself","it","it's","its","itself","they","them","their","theirs","themselves","what","which","who","whom","this","that","that'll","these","those","am","is","are","was","were","be","been","being","have","has","had","having","do","does","did","doing","a","an","the","and","but","if","or","because","as","until","while","of","at","by","for","with","about","against","between","into","through","during","before","after","above","below","to","from","up","down","in","out","on","off","over","under","again","further","then","once","here","there","when","where","why","how","all","both","each","few","more","most","other","some","such","no","nor","not","only","own","same","so","than","too","very","s","t","can","will","just","don","don't","should","should've","now","d","ll","m","o","re","ve","y","ain","aren","aren't","couldn","couldn't","didn","didn't","doesn","doesn't","hadn","hadn't","hasn","hasn't","haven","haven't","isn","isn't","ma","mightn","mightn't","mustn","mustn't","needn","needn't","shan","shan't","shouldn","shouldn't","wasn","wasn't","weren","weren't","won","won't","wouldn","wouldn't"]);
+
+const PUNCT_RE = /^[^\w\s]$/;
+const NUM_RE   = /^\d[\d.,]*$/;
+
+// Approximate NLTK word_tokenize (TreebankWordTokenizer rules)
+function wordTokenize(text) {
+  // Handle contractions, abbreviations, and punctuation similar to Punkt/Treebank
+  let t = text;
+  // Split ending punctuation
+  t = t.replace(/([.!?,;:])(\s|$)/g, ' $1 ');
+  // Opening punctuation
+  t = t.replace(/(\s|^)([([{"`])(\S)/g, '$1$2 $3');
+  // Closing brackets
+  t = t.replace(/(\S)([)\]}])(\s|$)/g, '$1 $2$3');
+  // Contractions - split n't, 've, 'll, 'd, 're, 'm, 's after word
+  t = t.replace(/(\w)(n't)\b/gi, '$1 $2');
+  t = t.replace(/(\w)('(?:ve|ll|d|re|m|s))\b/gi, '$1 $2');
+  // Ellipsis
+  t = t.replace(/\.\.\.+/g, ' ... ');
+  // Hyphen in middle of word kept together, but split around --
+  t = t.replace(/--/g, ' -- ');
+
+  return t.trim().split(/\s+/).filter(Boolean);
+}
+
+// Approximate NLTK sent_tokenize (Punkt algorithm rules)
+function sentTokenize(text) {
+  if (!text.trim()) return [];
+  // Punkt-like sentence boundary detection
+  // 1) Don't break after abbreviations like Mr. Dr. vs. etc.
+  const abbrevs = /\b(mr|mrs|ms|dr|prof|sr|jr|rev|gen|capt|maj|lt|col|vs|etc|al|approx|dept|est|govt|incl|corp|inc|ltd|co|no|nr|pp|vol|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)\./gi;
+  // Replace abbrev periods temporarily
+  let t = text.replace(abbrevs, m => m.replace('.', '\x00'));
+
+  // Split on sentence-ending punctuation followed by space+capital or end
+  const raw = t.split(/(?<=[.!?…]["')\]]*)\s+(?=[A-Z"'([{]|$)/);
+
+  return raw.map(s => s.replace(/\x00/g, '.')).filter(s => s.trim());
+}
+
+// RegexpTokenizer
+function regexpTokenize(text, pattern) {
+  try {
+    const re = new RegExp(pattern, 'g');
+    return text.match(re) || [];
+  } catch(e) {
+    return ['⚠ Invalid regex: ' + e.message];
+  }
+}
+
+function classifyToken(tok) {
+  if (NUM_RE.test(tok)) return 'token-num';
+  if (PUNCT_RE.test(tok)) return 'token-punct';
+  if (STOPWORDS.has(tok.toLowerCase())) return 'token-stop';
+  return 'token-word';
+}
+
+function renderWordResults(tokens, hideStop, hidePunct) {
+  const container = document.getElementById('word-results');
+  if (!tokens.length) { container.innerHTML = '<div class="empty-state">No tokens found.</div>'; return; }
+
+  let displayed = tokens.filter(t => {
+    if (hidePunct && PUNCT_RE.test(t)) return false;
+    if (hideStop && STOPWORDS.has(t.toLowerCase())) return false;
+    return true;
+  });
+
+  const wordsOnly = tokens.filter(t => !PUNCT_RE.test(t));
+  const punctOnly = tokens.filter(t => PUNCT_RE.test(t));
+
+  document.getElementById('s-total').textContent  = displayed.length;
+  document.getElementById('s-unique').textContent = new Set(displayed.map(t=>t.toLowerCase())).size;
+  document.getElementById('s-words').textContent  = wordsOnly.length;
+  document.getElementById('s-punct').textContent  = punctOnly.length;
+  document.getElementById('word-stats').style.display = 'flex';
+
+  const indices = tokens.map((t, i) => i);
+  const tokHtml = displayed.map((tok, i) => {
+    const cls = classifyToken(tok);
+    return `<span class="token ${cls}" title="index: ${i}">${escHtml(tok)}</span>`;
+  }).join('');
+
+  const pyTokens = JSON.stringify(tokens).replace(/"/g, "'");
+
+  container.innerHTML = `
+    <div class="result-card">
+      <div class="result-header">
+        <span class="result-title" style="color:var(--accent)">word_tokenize()</span>
+        <span class="result-meta">${displayed.length} tokens shown</span>
+      </div>
+      <div class="token-display">${tokHtml || '<span style="color:var(--muted);font-size:.8rem;font-family:monospace">All tokens hidden by filters</span>'}</div>
+      <div class="code-section">
+        <button class="code-toggle" onclick="toggleCode(this)"><span class="chevron">▶</span> View Python Code</button>
+        <div class="code-block">
+<pre><span class="kw">import</span> nltk
+<span class="kw">from</span> nltk.tokenize <span class="kw">import</span> <span class="fn">word_tokenize</span>
+<span class="kw">from</span> nltk.corpus <span class="kw">import</span> stopwords
+
+nltk.<span class="fn">download</span>(<span class="st">'punkt_tab'</span>)
+text = <span class="st">"${escHtml(document.getElementById('word-input').value)}"</span>
+tokens = <span class="fn">word_tokenize</span>(text)
+<span class="cm"># → ${escHtml(pyTokens)}</span></pre>
+        </div>
+      </div>
+    </div>`;
+}
+
+function runWordTokenize() {
+  const text   = document.getElementById('word-input').value;
+  const lower  = document.getElementById('opt-lower').checked;
+  const noStop = document.getElementById('opt-stopwords').checked;
+  const noPunct= document.getElementById('opt-nopunct').checked;
+  let tokens = wordTokenize(text);
+  if (lower) tokens = tokens.map(t => t.toLowerCase());
+  renderWordResults(tokens, noStop, noPunct);
+}
+
+function runSentTokenize() {
+  const text = document.getElementById('sent-input').value;
+  const sents = sentTokenize(text);
+  const container = document.getElementById('sent-results');
+
+  document.getElementById('ss-total').textContent = sents.length;
+  if (sents.length) {
+    const wordCounts = sents.map(s => wordTokenize(s).length);
+    const avg = (wordCounts.reduce((a,b)=>a+b,0) / wordCounts.length).toFixed(1);
+    document.getElementById('ss-avg').textContent = avg;
+    document.getElementById('ss-longest').textContent = Math.max(...wordCounts);
+  }
+  document.getElementById('sent-stats').style.display = 'flex';
+
+  const sentHtml = sents.map((s, i) => `
+    <span class="token token-sent"><strong style="color:var(--muted);font-size:.7rem">${i+1}</strong> ${escHtml(s)}</span>
+  `).join('');
+
+  const pyText = JSON.stringify(sents.map((s,i)=>s)).replace(/"/g,"'");
+
+  container.innerHTML = `
+    <div class="result-card">
+      <div class="result-header">
+        <span class="result-title" style="color:var(--accent3)">sent_tokenize()</span>
+        <span class="result-meta">${sents.length} sentence${sents.length!==1?'s':''}</span>
+      </div>
+      <div class="token-display">${sentHtml || '<div class="empty-state">No text entered.</div>'}</div>
+      <div class="code-section">
+        <button class="code-toggle" onclick="toggleCode(this)"><span class="chevron">▶</span> View Python Code</button>
+        <div class="code-block">
+<pre><span class="kw">from</span> nltk.tokenize <span class="kw">import</span> <span class="fn">sent_tokenize</span>
+nltk.<span class="fn">download</span>(<span class="st">'punkt'</span>)
+sentences = <span class="fn">sent_tokenize</span>(text)
+<span class="cm"># ${sents.length} sentence${sents.length!==1?'s':''} found</span></pre>
+        </div>
+      </div>
+    </div>`;
+}
+
+function runRegexpTokenize() {
+  const text = document.getElementById('regexp-input').value;
+  const pat  = document.getElementById('regexp-pattern').value;
+  const tokens = regexpTokenize(text, pat);
+  const container = document.getElementById('regexp-results');
+
+  const tokHtml = tokens.map(t =>
+    `<span class="token token-custom">${escHtml(t)}</span>`
+  ).join('');
+
+  container.innerHTML = `
+    <div class="result-card">
+      <div class="result-header">
+        <span class="result-title" style="color:var(--accent5)">RegexpTokenizer(r'${escHtml(pat)}')</span>
+        <span class="result-meta">${tokens.length} token${tokens.length!==1?'s':''}</span>
+      </div>
+      <div class="token-display">${tokHtml || '<div class="empty-state">No matches found.</div>'}</div>
+      <div class="code-section">
+        <button class="code-toggle" onclick="toggleCode(this)"><span class="chevron">▶</span> View Python Code</button>
+        <div class="code-block">
+<pre><span class="kw">from</span> nltk.tokenize <span class="kw">import</span> <span class="fn">RegexpTokenizer</span>
+tokenizer = <span class="fn">RegexpTokenizer</span>(<span class="st">r'${escHtml(pat)}'</span>)
+tokens = tokenizer.<span class="fn">tokenize</span>(text)
+<span class="cm"># ${tokens.length} token${tokens.length!==1?'s':''} found</span></pre>
+        </div>
+      </div>
+    </div>`;
+}
+
+function runCompare() {
+  const text = document.getElementById('compare-input').value;
+  const container = document.getElementById('compare-results');
+
+  const methods = [
+    { name: 'word_tokenize()', fn: () => wordTokenize(text), color: 'var(--accent)',  cls: 'token-word'  },
+    { name: 'sent_tokenize()', fn: () => sentTokenize(text), color: 'var(--accent3)', cls: 'token-sent'  },
+    { name: "RegexpTokenizer(r'\\w+')",        fn: () => regexpTokenize(text, '\\w+'),                color: 'var(--accent5)', cls: 'token-custom' },
+    { name: "RegexpTokenizer(r'\\w+(?:[-\']\\w+)*')", fn: () => regexpTokenize(text, "\\w+(?:[-']\\w+)*"), color: 'var(--accent2)', cls: 'token-punct'  },
+    { name: "RegexpTokenizer(r'[#@]?\\w+')",  fn: () => regexpTokenize(text, '[#@]?\\w+'),            color: 'var(--accent4)', cls: 'token-num'   },
+  ];
+
+  container.innerHTML = methods.map(m => {
+    const tokens = m.fn();
+    const html = tokens.map(t => `<span class="token ${m.cls}">${escHtml(t)}</span>`).join('');
+    return `
+      <div class="result-card">
+        <div class="result-header">
+          <span class="result-title" style="color:${m.color}">${m.name}</span>
+          <span class="result-meta">${tokens.length} token${tokens.length!==1?'s':''}</span>
+        </div>
+        <div class="token-display">${html}</div>
+      </div>`;
+  }).join('');
+}
+
+function applyPreset() {
+  const val = document.getElementById('regexp-preset').value;
+  if (val !== 'custom') {
+    document.getElementById('regexp-pattern').value = val;
+    runRegexpTokenize();
+  }
+}
+
+function toggleCode(btn) {
+  btn.classList.toggle('open');
+  const block = btn.nextElementSibling;
+  block.classList.toggle('visible');
+}
+
+function clearOutput(tab) {
+  document.getElementById(tab+'-results').innerHTML = '';
+  const s = document.getElementById(tab+'-stats');
+  if (s) s.style.display = 'none';
+}
+
+function loadSample(tab) {
+  const samples = {
+    word: "The N.L.T.K. library (v3.8) isn't just for English — it's multilingual! Costs ~$0 and supports 50+ languages.",
+    sent: "Mr. Watson, please come here. I want to see you! The quick brown fox jumped over the lazy dog. Dr. Holmes replied, \"Elementary.\" But was it really?",
+    compare: "Hello world! I'm a fan of NLP & NLTK. Costs $0.00. It's brilliant, isn't it?"
+  };
+  if (samples[tab]) document.getElementById(tab+'-input').value = samples[tab];
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Tab switching
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// Auto-run on load
+runWordTokenize();
+</script>
+</body>
+</html>
