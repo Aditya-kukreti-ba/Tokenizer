@@ -1,260 +1,168 @@
-🧠 NLTK Tokenizer — Interactive NLP Lab
+# NLTK Tokenizer — Interactive NLP Lab
 
-🌐 Live Demo:
-👉 https://tokenizer-beta.vercel.app/
+> **Live Demo → [https://tokenizer-beta.vercel.app/](https://tokenizer-beta.vercel.app/)**
 
-An interactive, browser-based Natural Language Processing (NLP) playground that demonstrates how NLTK-style tokenization works — including word tokenization, sentence tokenization, and custom regular expression tokenization.
+An interactive, browser-based playground for exploring **NLTK tokenization methods**. Paste any text and watch it get tokenized in real time — no Python installation required. Every result panel includes the exact Python/NLTK code to reproduce the output.
 
-Built with pure HTML, CSS, and JavaScript.
-No backend. No server. All processing happens locally in your browser.
+---
 
-📚 Table of Contents
+## Features
 
-Live Demo
+| Feature | Description |
+|---|---|
+| **Word Tokenize** | Mirrors `nltk.word_tokenize()` with color-coded token types |
+| **Sentence Tokenize** | Punkt-style sentence boundary detection via `sent_tokenize()` |
+| **RegexpTokenizer** | Live regex pattern matching with built-in presets |
+| **Compare All** | Side-by-side comparison of all tokenization methods |
+| **Learn** | Theory cards + a full Python/NLTK cheatsheet |
 
-Introduction
+---
 
-Features
+## Demo
 
-Installation
+[![Live on Vercel](https://img.shields.io/badge/Live%20Demo-tokenizer--beta.vercel.app-6ee7f7?style=for-the-badge&logo=vercel&logoColor=black)](https://tokenizer-beta.vercel.app/)
 
-Usage
+Open the app in your browser and try any of the five tabs:
 
-Tokenization Methods Implemented
+1. **Word Tokenize** — type text, toggle stopword/punctuation filters, and inspect per-token classifications (word, punctuation, number, stopword)
+2. **Sentence Tokenize** — paste a paragraph and see sentence boundaries detected with stats (count, average words/sentence, longest sentence)
+3. **RegexpTokenizer** — choose a preset pattern (`\w+`, hashtags, numbers, capitalized words…) or write your own regex
+4. **Compare All** — run all methods on the same input simultaneously
+5. **Learn** — read concept cards and copy the ready-to-run NLTK cheatsheet
 
-Dependencies
+---
 
-Configuration
+## Python Equivalents
 
-Examples
+Every result in the app corresponds directly to NLTK Python code. Here's a quick reference:
 
-Project Structure
+```python
+import nltk
+from nltk.tokenize import word_tokenize, sent_tokenize, RegexpTokenizer
+from nltk.corpus import stopwords
 
-Troubleshooting
+# One-time setup
+nltk.download('punkt')
+nltk.download('punkt_tab')
+nltk.download('stopwords')
 
-Future Improvements
+text = "Dr. Smith's lab isn't open today. Let's try again tomorrow!"
 
-Contributors
+# Word tokenization
+tokens = word_tokenize(text)
+# → ['Dr.', 'Smith', "'s", 'lab', "isn't", 'open', 'today', '.', ...]
 
-License
+# Sentence tokenization
+sentences = sent_tokenize(text)
+# → ["Dr. Smith's lab isn't open today.", "Let's try again tomorrow!"]
 
-🚀 Live Demo
+# Regex tokenization — words only
+tokenizer = RegexpTokenizer(r'\w+')
+tokens_re = tokenizer.tokenize(text)
+# → ['Dr', 'Smith', 's', 'lab', 'isn', 't', 'open', 'today', ...]
 
-The project is deployed and publicly accessible here:
+# Remove stopwords
+stop_words = set(stopwords.words('english'))
+filtered = [w for w in tokens if w.lower() not in stop_words]
 
-🔗 https://tokenizer-beta.vercel.app/
+# Token frequency
+from nltk import FreqDist
+fdist = FreqDist(tokens)
+fdist.most_common(5)
+```
 
-No installation required — open the link and start experimenting instantly.
+---
 
-📖 Introduction
+## Token Color Legend
 
-NLTK Tokenizer — Interactive NLP Lab is a visually rich educational tool designed to help users understand how tokenization works in Natural Language Processing.
+| Color | Type | Example |
+|---|---|---|
+| 🔵 Cyan | Regular word | `hello`, `NLTK`, `running` |
+| 🟠 Orange | Punctuation | `.` `,` `!` `?` `"` |
+| 🟣 Purple | Number | `42`, `3.14`, `2023` |
+| 🟢 Green | Stopword | `the`, `is`, `a`, `it` |
 
-The application mimics core functionality from Python’s NLTK library, including:
+---
 
-word_tokenize()
+## NLTK Tokenizers Covered
 
-sent_tokenize()
+### `word_tokenize()`
+Uses the **Punkt tokenizer** trained on English. Handles contractions (`don't` → `do` + `n't`), abbreviations (`Dr.`, `U.S.`), and punctuation intelligently. This is the most commonly used tokenizer in NLTK.
 
-RegexpTokenizer
+### `sent_tokenize()`
+Uses NLTK's **Punkt Sentence Tokenizer**. Handles tricky cases like `"Dr. Smith"` vs. an end-of-sentence period. Language models are available for 17+ languages.
 
-Stopword filtering
+### `RegexpTokenizer`
+Allows fully custom tokenization via regular expressions. Can match tokens or gaps. Great for domain-specific text like social media, medical notes, or source code.
 
-Token statistics
+**Built-in presets in the app:**
 
-Method comparison
+| Pattern | Matches |
+|---|---|
+| `\w+` | All word characters |
+| `[A-Z][a-z]+` | Capitalized words |
+| `\d+` | Numbers only |
+| `[a-zA-Z0-9]+` | Alphanumeric tokens |
+| `\w+(?:[-']\w+)*` | Words with hyphens/apostrophes |
+| `[#@]\w+` | Hashtags & mentions |
 
-It also provides Python code snippets showing how to replicate each result using actual NLTK.
+---
 
-✨ Features
-🔤 Word Tokenization
+## Tech Stack
 
-Approximate NLTK word_tokenize() behavior
+- **Frontend:** Vanilla HTML, CSS, JavaScript — zero dependencies, zero build step
+- **Fonts:** [Syne](https://fonts.google.com/specimen/Syne) + [Space Mono](https://fonts.google.com/specimen/Space+Mono) via Google Fonts
+- **Hosting:** [Vercel](https://vercel.com)
+- **NLP Reference:** [NLTK 3.8](https://www.nltk.org/) (Python)
 
-Handles:
+---
 
-Contractions (don't → do + n't)
+## Local Development
 
-Abbreviations (Dr.)
+Since the app is a single HTML file with no build process, just open it:
 
-Punctuation
+```bash
+# Clone the repo
+git clone https://github.com/your-username/nltk-tokenizer.git
+cd nltk-tokenizer
 
-Numbers
+# Open directly in browser
+open nltk_tokenizer.html
 
-Optional filters:
+# Or serve locally
+npx serve .
+# → http://localhost:3000
+```
 
-Hide stopwords
+---
 
-Hide punctuation
+## Deploying to Vercel
 
-Lowercase normalization
+The live site runs at **[https://tokenizer-beta.vercel.app/](https://tokenizer-beta.vercel.app/)**.
 
-Token statistics:
+To deploy your own instance:
 
-Total tokens
+```bash
+# Install Vercel CLI
+npm install -g vercel
 
-Unique tokens
+# Deploy
+vercel
 
-Word tokens
+# Or connect your GitHub repo at vercel.com for automatic deployments
+```
 
-Punctuation tokens
+---
 
-📄 Sentence Tokenization
+## Resources
 
-Punkt-style sentence segmentation
+- [NLTK Official Documentation](https://www.nltk.org/)
+- [NLTK Book — Chapter 3: Processing Raw Text](https://www.nltk.org/book/ch03.html)
+- [NLTK Tokenize API Reference](https://www.nltk.org/api/nltk.tokenize.html)
+- [RegexpTokenizer Docs](https://www.nltk.org/api/nltk.tokenize.regexp.html)
 
-Handles abbreviations properly (Dr. Smith)
+---
 
-Displays:
+## License
 
-Sentence count
-
-Average words per sentence
-
-Longest sentence length
-
-🔍 RegexpTokenizer
-
-Fully customizable regex-based tokenization
-
-Preset patterns:
-
-\w+ — words only
-
-\d+ — numbers
-
-Capitalized words
-
-Alphanumeric tokens
-
-Hashtags & mentions
-
-Hyphenated words
-
-Custom regex support
-
-⚖ Compare All Methods
-
-Side-by-side comparison of:
-
-word_tokenize()
-
-sent_tokenize()
-
-Multiple RegexpTokenizer patterns
-
-🚀 Installation
-
-No installation required for use.
-
-To run locally:
-
-Download the repository.
-
-Rename nltk_tokenizer.html → index.html
-
-Open it in your browser.
-
-Optional local server:
-
-python -m http.server 8000
-
-
-Then open:
-
-http://localhost:8000
-
-🧪 Usage
-
-Visit the live site:
-👉 https://tokenizer-beta.vercel.app/
-
-OR
-
-Open the HTML file locally.
-
-Enter text.
-
-Click Tokenize.
-
-Toggle filters or compare methods.
-
-Expand “View Python Code” to see equivalent NLTK implementation.
-
-All processing is done client-side in JavaScript.
-
-📦 Dependencies
-
-Frontend:
-
-HTML5
-
-CSS3
-
-Vanilla JavaScript
-
-Conceptual (Referenced for learning):
-
-NLTK 3.8
-
-Punkt tokenizer
-
-Stopwords corpus
-
-⚠ The deployed version does NOT require Python or NLTK.
-
-📁 Project Structure
-.
-├── index.html
-└── README.md
-
-
-Single-file application containing:
-
-HTML
-
-CSS
-
-JavaScript
-
-Embedded documentation
-
-🛠 Troubleshooting
-
-Regex shows error
-
-Ensure valid JavaScript regex syntax.
-
-Tokens don’t perfectly match Python NLTK
-
-This is a JavaScript approximation of Treebank & Punkt behavior.
-
-Large text slows rendering
-
-Reduce input size.
-
-🔮 Future Improvements
-
-Real NLTK backend API mode
-
-POS tagging visualization
-
-Lemmatization demo
-
-Token frequency charts
-
-Export tokens as JSON/CSV
-
-Light theme option
-
-👤 Contributors
-
-Your Name — Developer
-
-📄 License
-
-MIT License
-
-❤️ Built for Learning NLP
-
-Explore tokenization visually, experiment with regex patterns, and understand how NLTK processes text — directly in your browser.
+MIT — free to use, modify, and distribute.
